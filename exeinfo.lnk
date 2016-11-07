@@ -1,0 +1,4 @@
+system	dos
+option	map
+name	exeinfo
+file	exeinfo.obj
