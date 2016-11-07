@@ -1,2 +1,2 @@
-wcc exeinfo.c
+wcc exeinfo.c -wx
 wlink @exeinfo

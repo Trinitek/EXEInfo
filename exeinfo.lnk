@@ -1,4 +1,5 @@
 system	dos
+debug   all
 option	map
 name	exeinfo
 file	exeinfo.obj
