@@ -6,7 +6,9 @@
  *
  * See: http://www.delorie.com/djgpp/doc/exe/
  *      ... for information about the MZ header
+ *		http://www.fileformat.info/format/exe/corion-ne.htm
  *      http://www.program-transformation.org/Transform/NeFormat
+ *		http://benoit.papillault.free.fr/c/disc2/exefmt.txt
  *      ... for information about the NE header
  */
 
@@ -39,6 +41,60 @@ typedef struct
     short offset;
     short segment;
 } mz_reloc;
+
+typedef struct
+{
+	unsigned short signature;		// "NE"
+	unsigned char linkerVersion;	// Linker version
+	unsigned char linkerRevision;	// Linker revision
+	unsigned short entryTableOfs;	// Offset to entry table
+	unsigned short entryTableSize;	// Number of bytes in the entry table
+	unsigned long int crc;			// CRC checksum
+	unsigned short flags;			// Program load flags
+	unsigned short autoSeg;			// Segment number of auto data segment
+	unsigned short initialHeap;		// Number of bytes of heap to allocate at startup
+	unsigned short initialStack;	// Number of bytes of stack space to allocate at startup
+	unsigned short cs;				// CS segment number
+	unsigned short ip;				// Initial IP value
+	unsigned short ss;				// SS segment number
+	unsigned short sp;				// Initial SP value
+	unsigned short numSegmentTable;	// Number of entries in the segment table
+	unsigned short numModRefTable;	// Number of entries in the module reference table
+	unsigned short nrTableSize;		// Number of bytes in the non-resident name table
+	unsigned short segTableOfs;		// Offset to the segment table
+	unsigned short resTableOfs;		// Offset to the resource table
+	unsigned short resNameTableOfs;	// Offset to the resident name table
+	unsigned short modRefTableOfs;	// Offset to the module reference table
+	unsigned short impNameTableOfs;	// Offset to the imported names table
+	unsigned long int nrNameTableOfs; // Offset to the non-resident name table
+	unsigned short movableEntries;	// Number of movable entries in the entry table
+	unsigned short sectorAlignment;	// Logical sector alignment shift count
+	unsigned short resourceEntries;	// Number of resource entries
+	unsigned char exeType;			// Executable type
+	unsigned char otherFlags;		// Other program property flags
+	unsigned short fastOfs;			// Sector offset to the fast-load area (Windows only)
+	unsigned short fastSize;		// Number of sectors in the fast-load area (Windows only)
+	unsigned short minCodeSwapSize;	// Minimum size of the code swap area (Windows only)
+	unsigned char winRevision;		// Expected Windows revision (Windows only)
+	unsigned char winVersion;		// Expected Windows version (Windows only)
+} ne_header;
+
+#define NE_FLAG_NOAUTODATA		0x0000	// NOAUTODATA
+#define NE_FLAG_SINGLEDATA		0x0001	// Shared automatic data segment
+#define NE_FLAG_MULTIPLEDATA	0x0002	// Instanced automatic data segment
+#define NE_FLAG_LINKERROR		0x2000	// Errors during linking; will not load
+#define NE_FLAG_LIBRARY			0x8000	// Library module; SS:SP invalid, CS:IP points to an init procedure
+
+#define NE_OTHER_WIN2			0x01	// Windows 2.x app that can run in 3.x protected mode
+#define NE_OTHER_PROPORTIONAL	0x02	// Windows 2.x app that supports proportional fonts
+#define NE_OTHER_FASTLOAD		0x03	// Contains a fast-load area
+
+#define NE_EXE_UNKNOWN			0x00	// Unknown
+#define NE_EXE_OS2				0x01	// OS/2
+#define NE_EXE_WIN				0x02	// Windows
+#define NE_EXE_DOS4				0x03	// European MS-DOS 4.x
+#define NE_EXE_WIN386			0x04	// Windows 386
+#define NE_EXE_BOSS				0x05	// Borland OS Services
 
 void printHelp()
 {
@@ -118,11 +174,6 @@ bool parseMZReloc(FILE *exeFile, mz_header *exeMz)
     free(relocs);
     return true;
 }
-
-/*void ok()
-{
-    printf("Ok\n");
-}*/
 
 bool parseMZ(FILE *exeFile, mz_header *exeMz)
 {
